@@ -1,5 +1,6 @@
 # website-fingerprinting
-Code repository for Master's Thesis at KAU Spring 2021
+Code repository for Master's Thesis at KAU Spring 2021  
+Paper link: TBD
 
 ## Datasets
 [DS-TS](https://www.informatik.tu-cottbus.de/~andriy/zwiebelfreunde/TrafficSliver-Net.tar.xz)
