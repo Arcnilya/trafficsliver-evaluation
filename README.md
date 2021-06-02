@@ -1,5 +1,6 @@
 # website-fingerprinting
-Code repository for Master's Thesis at KAU Spring 2021  
+Code repository for Master's Thesis at KAU Spring 2021:  
+**Evaluation of a Proposed Traffic-Splitting Defence for Tor**  
 Paper link: TBD
 
 ## Datasets
