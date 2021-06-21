@@ -65,6 +65,8 @@ ap.add_argument("--gaps", action='store_true',
     help="run with gaps")
 ap.add_argument("--size", required=False, type=int, default=1,
     help="size of dataset")
+ap.add_argument("--st", required=True, type=int, default=500,
+    help="amount of sub-traces, DS-TS=500, DS-WA=450, DS-DF=5000")
 
 # dataset dimensions
 ap.add_argument("-c", required=False, type=int, default=100,
@@ -102,15 +104,25 @@ def main():
             
         
         print(f"{now()} starting to load dataset from {args['ed']}...")
-
-        dataset, labels, sample_tracker = shared.load_dataset_BWR5(
-            args["ed"],
-            args["l"],
-            args["dt"],
-            args["gaps"],
-            args["size"],
-            shared.extract_BWR5
-        )
+        
+        if not args["train"]: # Testing Directional Time with the non-sim BWR5
+            dataset, labels, sample_tracker = shared.load_dataset_BWR5(
+                args["ed"],
+                args["l"],
+                args["dt"],
+                args["gaps"],
+                args["size"],
+                shared.extract_BWR5 # shared.extract_BWR5_DT
+            )
+        else:
+            dataset, labels, sample_tracker = shared.load_dataset_BWR5(
+                args["ed"],
+                args["l"],
+                args["dt"],
+                args["gaps"],
+                args["size"],
+                shared.extract_BWR5
+            )
         print(f"{now()} loaded dataset.")
             
         if args["sd"] != "":
@@ -118,8 +130,9 @@ def main():
             print(f"saved dataset to {args['sd']}")
 
     print(f"{now()} loaded {len(dataset)} items in dataset with {len(labels)} labels")
-
-    split = shared.split_dataset_BWR5(args["c"], args["f"], labels, sample_tracker)
+    
+    
+    split = shared.split_dataset_BWR5(args["c"], sample_tracker, args["st"])
     print(
         f"{now()} split {len(split['train'])} training, "
         f"{len(split['validation'])} validation, and "

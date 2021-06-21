@@ -103,22 +103,21 @@ def load_dataset(
     return data, labels
 
 
-def load_dataset_BWR5(dir_path, length, _dt, _gaps, ds_size, extract_func):
+def load_dataset_BWR5(dir_path, length, dt, _gaps, ds_size, extract_func):
     data = {}
     labels = {}
     sample_tracker = [0] * 100
 
+    foo = True
     for i in range(ds_size):
-        print(f"loading set: {i+1}/{ds_size}")
-        iter_path = os.path.join(dir_path, str(i))
-        for website in tqdm(os.listdir(iter_path)):
-            web_path = os.path.join(iter_path, website)
-            for fname in os.listdir(web_path):
-                if '.cell' in fname:
-                    file_path = os.path.join(web_path, fname)
-                    with open(file_path, "r") as f:
-                        trace = extract_func(f.read(), length, _dt, _gaps)
+        print(f"loading set {i+1}/{ds_size}")
+        for website in tqdm(os.listdir(os.path.join(dir_path, str(i)))):
+            for fname in os.listdir(os.path.join(dir_path, str(i), website)):
+                if '.cell' in fname:  
+                    with open(os.path.join(dir_path, str(i), website, fname), "r") as f:
+                        trace = extract_func(f.read(), length, dt, _gaps)
                         label, sample = fname.split('.')[0].split('-')
+                        #ID = f"m-{label}-0-{sample}"
                         ID = f"m-{label}-0-{sample_tracker[int(label)]}"
                         data[ID] = trace
                         labels[ID] = int(label)
@@ -132,10 +131,7 @@ def extract_BWR5(trace, length, dt, gaps):
     trace = trace.split("\n")
     i = 0
     for n in range(len(trace)-1):
-        if gaps and dt:
-            data[0][i] = np.float(int(trace[n]))
-            i += 1
-        elif gaps and int(trace[n]) == 0:
+        if gaps and int(trace[n]) == 0:
             data[0][i] = 0.0
             i += 1
         elif dt and int(trace[n]) != 0:
@@ -147,10 +143,9 @@ def extract_BWR5(trace, length, dt, gaps):
         elif int(trace[n]) < 0:
             data[0][i] = -1.0
             i += 1
-        # else, found a zero and gaps is false
         if i >= length:
             break
-
+        # else: found a zero and gaps is false
     return data
 
 
@@ -239,7 +234,7 @@ def split_dataset(
 
 
 def split_dataset_BWR5(
-    classes, fold, labels, sample_tracker,
+    classes, sample_tracker, sub_traces
     ):
     '''Splits the dataset based on fold.
     The split is only based on IDs, not the actual data. The result is a 8:1:1
@@ -249,18 +244,17 @@ def split_dataset_BWR5(
     validation = []
     testing = []
 
-    # monitored, split by sample
+    # monitored, split by _sample_
     for c in range(0,classes):
-        i = 0
         for s in range(0,sample_tracker[c]):
+            x = (s % sub_traces) // 5
             ID = f"m-{c}-0-{s}"
-            if i < 8:
+            if x < int(sub_traces/5*0.8):
                 training.append(ID)
-            elif i == 8:
+            elif x < int(sub_traces/5*0.9):
                 validation.append(ID)
-            else: # i == 9
+            else:
                 testing.append(ID)
-            i = (i+1) if i < 9 else 0
 
     split = {}
     split["train"] = training
